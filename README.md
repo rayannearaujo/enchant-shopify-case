@@ -2,11 +2,17 @@
 
 > Redesigning the product page experience to support charm customization — increasing conversion rate to **11% in 14 days**.
 
-![Before and After](./assets/before-after.png)
+---
+
+## Before & After
+
+| Before | After |
+|---|---|
+| ![Before](./assets/before.png) | ![After](./assets/after.png) |
 
 ---
 
-## 🔎 Overview
+## Overview
 
 | | |
 |---|---|
@@ -18,7 +24,7 @@
 
 ---
 
-## 🧩 The Problem
+## The Problem
 
 Enchant sells premium, customizable jewelry — but their Shopify product pages treated every item the same way.
 
@@ -31,7 +37,7 @@ Customers couldn't see or select interchangeable charms directly on the product 
 
 ---
 
-## 💡 The Solution
+## The Solution
 
 Designed and implemented a **visual charm selector** directly on the product page — allowing customers to browse, compare, and choose their charm before adding to cart.
 
@@ -44,7 +50,7 @@ Designed and implemented a **visual charm selector** directly on the product pag
 
 ---
 
-## 📊 Results
+## Results
 
 | Metric | Result |
 |---|---|
@@ -54,21 +60,7 @@ Designed and implemented a **visual charm selector** directly on the product pag
 
 ---
 
-## 🖥️ Before & After
-
-### Desktop
-
-| Before | After |
-|---|---|
-| Static product page, single add-to-cart | Visual charm selector with images and prices |
-
-### Mobile
-
-Fully responsive experience — charm selector adapts cleanly to mobile layout.
-
----
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 - Shopify
 - Liquid (Shopify templating language)
@@ -78,23 +70,21 @@ Fully responsive experience — charm selector adapts cleanly to mobile layout.
 
 ---
 
-## 📁 Files in this repo
+## Files in this repo
 
 ```
 /
 ├── README.md
 ├── assets/
-│   ├── before-after.png
-│   ├── desktop-before.png
-│   ├── desktop-after.png
-│   ├── mobile-after.png
+│   ├── before.png
+│   └── after.png
 └── snippets/
-    └── charm-selector.liquid   ← main implementation
+    └── charm-selector.liquid
 ```
 
 ---
 
-## 🔗 Live site
+## Live site
 
 [enchant.ie](https://enchant.ie)
 
