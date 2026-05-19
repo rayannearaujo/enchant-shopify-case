@@ -1,0 +1,315 @@
+{% comment %} CHARM SELECTOR VISUAL {% endcomment %}
+{% if product.tags contains 'charm-base' %}
+
+{% assign is_earring = false %}
+{% if product.tags contains 'pendant-earring' %}
+  {% assign is_earring = true %}
+{% endif %}
+
+{% if is_earring %}
+  <span id="is-pendant" style="display:none;"></span>
+{% endif %}
+
+<div class="charm-selector" style="margin-bottom: 16px; display:none;">
+  <label style="display:block; font-weight:600; margin-bottom:12px; font-size:15px;">
+    Choose your charm
+  </label>
+
+  <div id="charm-grid" style="
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+    width: 100%;
+    box-sizing: border-box;
+  ">
+    <div style="text-align:center; color:#888; font-size:13px; grid-column: 1/-1; padding: 20px 0;">
+      Loading charms...
+    </div>
+  </div>
+
+  <div id="charm-pagination" style="display:flex; justify-content:center; align-items:center; gap:8px; margin-bottom:12px;"></div>
+
+  <div id="charm-selected-label" style="
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 8px;
+    min-height: 20px;
+  "></div>
+
+  <input type="hidden" name="properties[Charm]" id="charm-hidden-input" value="">
+</div>
+
+{% endif %}
+{% comment %} END CHARM SELECTOR VISUAL {% endcomment %}
+
+<style>
+  .charm-selector {
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  #charm-grid {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .charm-item {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.2s, transform 0.15s;
+    background: #fff;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+  .charm-item:hover {
+    border-color: #b0a090;
+    transform: scale(1.03);
+  }
+  .charm-item.selected {
+    border-color: #c9a96e;
+    box-shadow: 0 0 0 2px #c9a96e;
+    background: #fffaf4;
+  }
+.charm-item img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    border-radius: 4px;
+    display: block;
+    background: #fff;
+    mix-blend-mode: multiply;
+  
+  }
+  .charm-item span {
+    display: block;
+    font-size: 10px;
+    color: #555;
+    margin-top: 4px;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .charm-page-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #1a1a2e;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .charm-page-btn:hover {
+    background: #c9a96e;
+  }
+  .charm-page-btn:disabled {
+    background: #ccc;
+    cursor: default;
+  }
+  @media (max-width: 768px) {
+    #charm-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 6px !important;
+    }
+    .charm-item span {
+      font-size: 9px;
+    }
+  }
+</style>
+
+<script>
+(function() {
+  var COLLECTION_HANDLE = 'enchant-hoop-and-charm-collection';
+  var ITEMS_PER_PAGE = 6;
+  var grid = document.getElementById('charm-grid');
+  var pagination = document.getElementById('charm-pagination');
+  var hiddenInput = document.getElementById('charm-hidden-input');
+  var selectedLabel = document.getElementById('charm-selected-label');
+  var charmSelector = document.querySelector('.charm-selector');
+  var isPendant = document.getElementById('is-pendant') !== null;
+  var allCharms = [];
+  var filteredCharms = [];
+  var currentPage = 0;
+
+  function fetchCharms(page) {
+    page = page || 1;
+    fetch('/collections/' + COLLECTION_HANDLE + '/products.json?limit=250&page=' + page)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.products && data.products.length > 0) {
+          allCharms = allCharms.concat(data.products);
+          if (data.products.length === 250) {
+            fetchCharms(page + 1);
+          } else {
+            prepareCharms();
+          }
+        } else {
+          prepareCharms();
+        }
+      })
+      .catch(function() {
+        grid.innerHTML = '<div style="color:#888; font-size:13px; grid-column:1/-1; padding:10px 0;">Could not load charms. Please refresh.</div>';
+      });
+  }
+
+  function prepareCharms() {
+    filteredCharms = allCharms.filter(function(charm) {
+      if (isPendant && charm.title.toLowerCase().includes('keshi')) return false;
+      return true;
+    });
+    currentPage = 0;
+    renderPage();
+  }
+
+  function renderPage() {
+    if (filteredCharms.length === 0) {
+      grid.innerHTML = '<div style="color:#888; font-size:13px; grid-column:1/-1;">No charms found.</div>';
+      return;
+    }
+
+    grid.innerHTML = '';
+    var start = currentPage * ITEMS_PER_PAGE;
+    var end = Math.min(start + ITEMS_PER_PAGE, filteredCharms.length);
+    var pageCharms = filteredCharms.slice(start, end);
+
+    pageCharms.forEach(function(charm) {
+      var img = charm.images && charm.images[0] ? charm.images[0].src : '';
+      var name = charm.title.replace('Enchant ', '').replace('Gold Plated ', '');
+
+      var pairVariant = charm.variants ? charm.variants.find(function(v) {
+        return v.title.toLowerCase().includes('pair');
+      }) : null;
+      var singleVariant = charm.variants ? charm.variants.find(function(v) {
+        return v.title.toLowerCase().includes('single');
+      }) : null;
+
+      var priceRaw;
+      if (isPendant && pairVariant) {
+        priceRaw = pairVariant.price;
+      } else if (singleVariant) {
+        priceRaw = singleVariant.price;
+      } else {
+        priceRaw = charm.variants && charm.variants[0] ? charm.variants[0].price : '';
+      }
+      var price = priceRaw ? '€' + parseFloat(priceRaw).toFixed(2).replace('.00', '') : '';
+
+      var variantLabel = isPendant
+        ? (pairVariant ? pairVariant.title : 'Pair of charms')
+        : (singleVariant ? singleVariant.title : 'Single charm');
+
+      var div = document.createElement('div');
+      div.className = 'charm-item';
+      div.setAttribute('data-charm', charm.title);
+
+      if (hiddenInput.value === charm.title) {
+        div.classList.add('selected');
+      }
+
+      div.innerHTML = img
+        ? '<img src="' + img + '" alt="' + name + '" loading="lazy">'
+        : '<div style="width:100%;aspect-ratio:1;background:#f0f0f0;border-radius:4px;"></div>';
+      div.innerHTML += '<span style="font-weight:600;">' + name + '</span>';
+      div.innerHTML += '<span style="color:#888; font-size:9px;">' + variantLabel + '</span>';
+      if (price) div.innerHTML += '<span style="color:#888;">' + price + '</span>';
+
+      div.addEventListener('click', function() {
+        document.querySelectorAll('.charm-item').forEach(function(el) {
+          el.classList.remove('selected');
+        });
+        div.classList.add('selected');
+        hiddenInput.value = charm.title;
+        selectedLabel.textContent = 'Selected: ' + name;
+      });
+
+      grid.appendChild(div);
+    });
+
+    renderPagination();
+  }
+
+  function renderPagination() {
+    pagination.innerHTML = '';
+    var totalPages = Math.ceil(filteredCharms.length / ITEMS_PER_PAGE);
+    if (totalPages <= 1) return;
+
+    var prevBtn = document.createElement('button');
+    prevBtn.className = 'charm-page-btn';
+    prevBtn.innerHTML = '&#8592;';
+    prevBtn.disabled = currentPage === 0;
+    prevBtn.addEventListener('click', function() {
+      if (currentPage > 0) {
+        currentPage--;
+        renderPage();
+      }
+    });
+
+    var pageInfo = document.createElement('span');
+    pageInfo.style.cssText = 'font-size:12px; color:#888; align-self:center;';
+    pageInfo.textContent = (currentPage + 1) + ' / ' + totalPages;
+
+    var nextBtn = document.createElement('button');
+    nextBtn.className = 'charm-page-btn';
+    nextBtn.innerHTML = '&#8594;';
+    nextBtn.disabled = currentPage >= totalPages - 1;
+    nextBtn.addEventListener('click', function() {
+      if (currentPage < totalPages - 1) {
+        currentPage++;
+        renderPage();
+      }
+    });
+
+    pagination.appendChild(prevBtn);
+    pagination.appendChild(pageInfo);
+    pagination.appendChild(nextBtn);
+  }
+
+  function showSelector() {
+    if (charmSelector) charmSelector.style.display = 'block';
+  }
+
+  function hideSelector() {
+    if (charmSelector) charmSelector.style.display = 'none';
+  }
+
+  function toggleCharm() {
+    var swatches = document.querySelector('.product-single__swatches');
+
+    if (!swatches) {
+      showSelector();
+      return;
+    }
+
+    var activeInput = document.querySelector('.product-single__swatch__input:checked');
+    var selectedText = activeInput ? activeInput.value.toLowerCase() : '';
+
+    var isValid = selectedText.includes('necklace') ||
+                  selectedText.includes('earring') ||
+                  selectedText.includes('hoop');
+
+    if (isValid) {
+      showSelector();
+    } else {
+      hideSelector();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    fetchCharms();
+  });
+
+  fetchCharms();
+
+  setInterval(function() {
+    toggleCharm();
+  }, 300);
+})();
+</script>
